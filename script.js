@@ -1,11 +1,10 @@
 const gameBoard = (function(){
-    const rows = 3;
-    const columns = 3;
+    const dimensions = 3;
     const board = [];
 
-    for (let i = 0; i < rows; i++) {
+    for (let i = 0; i < dimensions; i++) {
         board[i] = [];
-        for (let j = 0; j < columns; j++) {
+        for (let j = 0; j < dimensions; j++) {
             board[i].push(Cell());
         }
     }
@@ -14,17 +13,15 @@ const gameBoard = (function(){
         console.log(boardWithCellValues);
     };
     const getBoard = () => board;
-    const getCell = (row, col) => board[row, col];
-    const fillCell = (row, col, marker) => board[row][col].fill(marker);
-
-    return {printBoard, getBoard, getCell, fillCell};
+    const getDimensions = () => dimensions;
+    return {printBoard, getBoard, getDimensions};
 })();
 
 const gameController = (function(){
     let roundNum = 1;
     let gameOver = false;
     const playerOne = createPlayer("Player One", "X");
-    const playerTwo = createPlayer("Player Two", "Y"); 
+    const playerTwo = createPlayer("Player Two", "O"); 
 
     let currentPlayer = playerOne;
 
@@ -34,79 +31,84 @@ const gameController = (function(){
     const getCurrentPlayer = () => currentPlayer;
 
     const printPlayerTurn = () => {
-        //print message stating the user's turn
         console.log(`${currentPlayer.getName()}'s turn`);
     }
 
     const getGameOver = () => gameOver;
-    // const toggleGameOver = () => gameOver = gameOver === true? false : true; 
     
     const isGameOver = () => { 
         const marker = currentPlayer.getMarker();
         const board = gameBoard.getBoard();
-        const rows = board.length;
-        const columns = board[1].length;
+        const dimensions = board.length;
         let rowFilled = columnFilled = diagonalFilled = true;
         // check for horizontal wins
-        for (let i = 0; i < rows; i++){
-            for (let j = 0; j < columns; j++){
+        for (let i = 0; i < dimensions; i++){
+            for (let j = 0; j < dimensions; j++){
                 const currCell = board[i][j];
                 if (currCell.getValue() !== marker)
                     columnFilled = false;
             }
         }
         //check for vertical wins
-        for (let i = 0; i < columns; i++){
-            for (let j = 0; j < rows; j++){
+        for (let i = 0; i < dimensions; i++){
+            for (let j = 0; j < dimensions; j++){
                 const currCell = board[j][i];
                 if (currCell.getValue() !== marker)
                     rowFilled = false;
             }
         }
-        //check for diagonal wins
-        for (let i = 0; i < rows; i++){
-            const currCell = board[i][i];
-            if (currCell.getValue() !== marker)
-                diagonalFilled = false;
-        }
-        for (let i = rows - 1; i >= 0; i--){
+
+        for (let i = 0; i < dimensions; i++){
             const currCell = board[i][i];
             if (currCell.getValue() !== marker)
                 diagonalFilled = false;
         }
 
-        return (rowFilled || columnFilled || diagonalFilled);
-            
+        for (let i = dimensions - 1; i >= 0; i--){
+            const currCell = board[i][i];
+            if (currCell.getValue() !== marker)
+                diagonalFilled = false;
+        }   
+
+        return (rowFilled || columnFilled || diagonalFilled);       
     }
+
     const isBoardFull = () => { 
-        gameBoard.getBoard().every(row => row.every(cell => cell !== ""));
+        const board = gameBoard.getBoard();
+        return board.every(row => row.every(cell => !(cell.isEmpty())));
     }
 
     const playRound = (row, col) => {
         const board = gameBoard.getBoard();
-        //who's turn it is 
-        //fill the cell given the current players choice of row and column, then fill with their marker
-        console.log(`${getCurrentPlayer().getName()} places an ${getCurrentPlayer().getMarker()} in (${col + 1},${row + 1})`);
-        gameBoard.fillCell(row, col, currentPlayer.getMarker());
-        gameBoard.printBoard();
-        //then switch turns and prepare next round
-        switchPlayerTurn();
-        // console.log(IsGameOver(getCurrentPlayer().getMarker()));
-        if (isGameOver(getCurrentPlayer().getMarker()))
+        const cell = board[row][col];
+        const playerMarker = currentPlayer.getMarker();
+        const playerName = currentPlayer.getName(); 
+
+        printPlayerTurn(); 
+
+        if (cell.isEmpty())
         {
-            gameBoard.printBoard();
+            console.log(`${playerName} places an ${playerMarker} in (${col + 1},${row + 1})`);
+            cell.fill(playerMarker);
+        }
+        else{
+            console.log(`cell (${col + 1},${row + 1}) is already occupied!`);
+            return;
+        }
+        cell.fill(playerMarker);
+        switchPlayerTurn();
+        if (isGameOver(playerMarker))
+        {
             gameOver = true;
-            alert('player wins!');
+            console.log(`${playerName} wins!`);
         }
         if (isBoardFull())
         {
-            gameBoard.printBoard();
             gameOver = true;
-            alert('tie');
+            console.log('tie');
         }
-        //check if game over, if not set next round
-        //if gameOver()
-        printPlayerTurn();  
+
+        gameBoard.printBoard();
     }
 
     return {switchPlayerTurn, getCurrentPlayer, printPlayerTurn, playRound, getGameOver};
@@ -119,9 +121,14 @@ function Cell(){
         value = marker;
     }
 
+    const isEmpty = () => {
+        if (value === "")
+            return true;
+        };
+
     const getValue = () => value;
 
-    return {fill, getValue};
+    return {fill, isEmpty, getValue};
 }
 
 function createPlayer(name, marker) {
@@ -130,19 +137,34 @@ function createPlayer(name, marker) {
     return {getName, getMarker};
 }
 
-gameController.printPlayerTurn();
+const displayController = (function(){
+    //render content of array to the webpage
+    const board = gameBoard.getBoard();
+    const dimensions = gameBoard.getDimensions();
+    const boardContainer = document.querySelector("#board");
+    const render = () => {
+        board.forEach(row => row.forEach(cell => {
+            console.log(cell);
+            const button = document.createElement('div'); 
+            button.textContent = cell.getValue();
+            boardContainer.append(button);
+            // console.log(div);
+            // console.log(boardContainer);
+            // // boardContainer.append(div);
+        }))
+    }
+    return {render};
+})();
 
-// gameController.playRound(0, 0);
-// gameController.playRound(1, 1);
-// // gameController.playRound(1, 2);
-// // gameController.playRound(1, 2);
-// gameController.playRound(2, 2);
 
+// while (!gameController.getGameOver()){
+//     gameController.playRound(getRndInteger(0, 3), getRndInteger(0, 3));
+// }
+gameController.playRound(1, 0);
+gameController.playRound(1, 1);
+gameController.playRound(1, 2);
+displayController.render();
 
-
-while (!gameController.getGameOver()){
-    gameController.playRound(getRndInteger(0, 3), getRndInteger(0, 3));
-}
 
 function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min) ) + min;
