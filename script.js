@@ -142,18 +142,23 @@ const displayController = (function(){
     const board = gameBoard.getBoard();
     const dimensions = gameBoard.getDimensions();
     const boardContainer = document.querySelector("#board");
+    const reset = document.querySelector("#reset");
+    reset.addEventListener("click", (event) => {
+        clearScreen();
+    })
     const render = () => {
         board.forEach(row => row.forEach(cell => {
             console.log(cell);
             const button = document.createElement('div'); 
             button.textContent = cell.getValue();
             boardContainer.append(button);
-            // console.log(div);
-            // console.log(boardContainer);
-            // // boardContainer.append(div);
         }))
     }
-    return {render};
+    const clearScreen = () => {
+        const cells = boardContainer.childNodes;
+        cells.forEach(cell => cell.innerHTML = '');
+    }
+    return {render, clearScreen};   
 })();
 
 
