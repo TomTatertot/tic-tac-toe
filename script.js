@@ -141,22 +141,41 @@ const displayController = (function(){
     //render content of array to the webpage
     const board = gameBoard.getBoard();
     const dimensions = gameBoard.getDimensions();
-    const boardContainer = document.querySelector("#board");
+    const boardHTML = document.querySelector("#board");
     const reset = document.querySelector("#reset");
+    // console.log(cells);
     reset.addEventListener("click", (event) => {
         clearScreen();
     })
     const render = () => {
-        board.forEach(row => row.forEach(cell => {
-            console.log(cell);
-            const button = document.createElement('div'); 
-            button.textContent = cell.getValue();
-            boardContainer.append(button);
-        }))
+        for (let i = 0; i < dimensions; i++){
+            for (let j = 0; j < dimensions; j++){
+                const button = document.createElement('button'); 
+
+                button.textContent = board[i][j].getValue();
+                button.dataset.row = i;
+                button.dataset.col = j;
+
+                button.addEventListener("click", addMarker);
+
+                boardHTML.append(button);
+            }
+        }
     }
     const clearScreen = () => {
-        const cells = boardContainer.childNodes;
-        cells.forEach(cell => cell.innerHTML = '');
+        const cells = boardHTML.querySelectorAll("button");
+        console.log(cells);
+        cells.forEach(cell => cell.remove());
+    }
+
+    const addMarker = (e) => {
+        const divCell = e.target;
+        console.log(`${divCell.dataset.row},${divCell.dataset.col}`);
+        gameController.playRound(divCell.dataset.row, divCell.dataset.col);
+        clearScreen();
+        render();
+        // divCell.
+        // console.log(e.target);
     }
     return {render, clearScreen};   
 })();
@@ -165,9 +184,9 @@ const displayController = (function(){
 // while (!gameController.getGameOver()){
 //     gameController.playRound(getRndInteger(0, 3), getRndInteger(0, 3));
 // }
-gameController.playRound(1, 0);
-gameController.playRound(1, 1);
-gameController.playRound(1, 2);
+// gameController.playRound(1, 0);
+// gameController.playRound(1, 1);
+// gameController.playRound(1, 2);
 displayController.render();
 
 
