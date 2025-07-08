@@ -36,40 +36,60 @@ const gameController = (function(){
 
     const getGameOver = () => gameOver;
     
-    const isGameOver = () => { 
+    const checkForWinner = () => { 
         const marker = currentPlayer.getMarker();
         const board = gameBoard.getBoard();
-        const dimensions = board.length;
+        const dimensions = gameBoard.getDimensions();
         let rowFilled = columnFilled = diagonalFilled = true;
         // check for horizontal wins
+        // debugger;
         for (let i = 0; i < dimensions; i++){
             for (let j = 0; j < dimensions; j++){
                 const currCell = board[i][j];
                 if (currCell.getValue() !== marker)
+                {
+                    // console.log({currCell: currCell, marker: marker});
+                    // console.log(`In column check. Cell marker: ${currCell.getValue()} playerMarker: ${marker}`);
                     columnFilled = false;
+
+                }
+                    // columnFilled = false;
             }
         }
         //check for vertical wins
         for (let i = 0; i < dimensions; i++){
             for (let j = 0; j < dimensions; j++){
                 const currCell = board[j][i];
+                console.log(currCell.getValue());
+
                 if (currCell.getValue() !== marker)
+                {
+
+                    // console.log(`In row check. Cell marker: ${currCell.getValue()} playerMarker: ${marker}`);
                     rowFilled = false;
+                }
             }
         }
 
+        //diagonal wins
         for (let i = 0; i < dimensions; i++){
             const currCell = board[i][i];
-            if (currCell.getValue() !== marker)
+            if (currCell.getValue() !== marker){
+                // console.log(`In diagonal check. Cell marker: ${currCell.getValue()} playerMarker: ${marker}`);
                 diagonalFilled = false;
+            }
         }
 
         for (let i = dimensions - 1; i >= 0; i--){
             const currCell = board[i][i];
             if (currCell.getValue() !== marker)
+            {
+                // console.log(`In diagonal. Cell marker: ${currCell.getValue()} playerMarker: ${marker}`);
                 diagonalFilled = false;
-        }   
 
+            }
+        }   
+        console.log(rowFilled, columnFilled, diagonalFilled);
         return (rowFilled || columnFilled || diagonalFilled);       
     }
 
@@ -95,9 +115,8 @@ const gameController = (function(){
             console.log(`cell (${col + 1},${row + 1}) is already occupied!`);
             return;
         }
-        cell.fill(playerMarker);
-        switchPlayerTurn();
-        if (isGameOver(playerMarker))
+        
+        if (checkForWinner())
         {
             gameOver = true;
             console.log(`${playerName} wins!`);
@@ -108,6 +127,7 @@ const gameController = (function(){
             console.log('tie');
         }
 
+        // switchPlayerTurn();
         gameBoard.printBoard();
     }
 
@@ -143,9 +163,9 @@ const displayController = (function(){
     const dimensions = gameBoard.getDimensions();
     const boardHTML = document.querySelector("#board");
     const reset = document.querySelector("#reset");
-    // console.log(cells);
     reset.addEventListener("click", (event) => {
         clearScreen();
+        render();
     })
     const render = () => {
         for (let i = 0; i < dimensions; i++){
@@ -163,9 +183,7 @@ const displayController = (function(){
         }
     }
     const clearScreen = () => {
-        const cells = boardHTML.querySelectorAll("button");
-        console.log(cells);
-        cells.forEach(cell => cell.remove());
+        boardHTML.innerHTML = '';
     }
 
     const addMarker = (e) => {
@@ -174,8 +192,6 @@ const displayController = (function(){
         gameController.playRound(divCell.dataset.row, divCell.dataset.col);
         clearScreen();
         render();
-        // divCell.
-        // console.log(e.target);
     }
     return {render, clearScreen};   
 })();
@@ -184,10 +200,23 @@ const displayController = (function(){
 // while (!gameController.getGameOver()){
 //     gameController.playRound(getRndInteger(0, 3), getRndInteger(0, 3));
 // }
-// gameController.playRound(1, 0);
+gameController.playRound(0, 0);
+gameController.playRound(1, 0);
+gameController.playRound(2, 0);
+
+// gameController.playRound(0, 0);
 // gameController.playRound(1, 1);
-// gameController.playRound(1, 2);
-displayController.render();
+// gameController.playRound(2, 2);
+
+// gameController.playRound(0, 0);
+// gameController.playRound(1, 1);
+// gameController.playRound(2, 2);
+
+// gameController.playRound(0, 0);
+// gameController.playRound(1, 1);
+// gameController.playRound(2, 2);
+
+// displayController.render();
 
 
 function getRndInteger(min, max) {
