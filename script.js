@@ -40,57 +40,48 @@ const gameController = (function(){
         const marker = currentPlayer.getMarker();
         const board = gameBoard.getBoard();
         const dimensions = gameBoard.getDimensions();
-        let rowFilled = columnFilled = diagonalFilled = true;
         // check for horizontal wins
         // debugger;
         for (let i = 0; i < dimensions; i++){
+            let rowMarked = true;
             for (let j = 0; j < dimensions; j++){
-                const currCell = board[i][j];
-                if (currCell.getValue() !== marker)
-                {
-                    // console.log({currCell: currCell, marker: marker});
-                    // console.log(`In column check. Cell marker: ${currCell.getValue()} playerMarker: ${marker}`);
-                    columnFilled = false;
-
-                }
-                    // columnFilled = false;
+                if (board[i][j].getValue() !== marker)
+                    rowMarked = false;
             }
+            if (rowMarked) 
+                return true;
         }
         //check for vertical wins
         for (let i = 0; i < dimensions; i++){
+            let columnMarked = true;
             for (let j = 0; j < dimensions; j++){
-                const currCell = board[j][i];
-                console.log(currCell.getValue());
-
-                if (currCell.getValue() !== marker)
-                {
-
-                    // console.log(`In row check. Cell marker: ${currCell.getValue()} playerMarker: ${marker}`);
-                    rowFilled = false;
-                }
+                if (board[j][i].getValue() !== marker)
+                    columnMarked = false;
             }
+            if (columnMarked)
+                return true;
         }
 
         //diagonal wins
+        let diagonalMarked = true;
         for (let i = 0; i < dimensions; i++){
-            const currCell = board[i][i];
-            if (currCell.getValue() !== marker){
-                // console.log(`In diagonal check. Cell marker: ${currCell.getValue()} playerMarker: ${marker}`);
-                diagonalFilled = false;
-            }
+            if (board[i][i].getValue() !== marker)
+                diagonalMarked = false;
         }
 
-        for (let i = dimensions - 1; i >= 0; i--){
-            const currCell = board[i][i];
-            if (currCell.getValue() !== marker)
-            {
-                // console.log(`In diagonal. Cell marker: ${currCell.getValue()} playerMarker: ${marker}`);
-                diagonalFilled = false;
+        if (diagonalMarked)
+            return true;
 
-            }
-        }   
-        console.log(rowFilled, columnFilled, diagonalFilled);
-        return (rowFilled || columnFilled || diagonalFilled);       
+        diagonalMarked = true;
+        for (let i = dimensions - 1; i >= 0; i--){
+            if (board[i][dimensions-i-1].getValue() !== marker)
+                diagonalMarked = false;
+        }
+
+        if (diagonalMarked)
+            return true;
+
+        return false;
     }
 
     const isBoardFull = () => { 
@@ -108,11 +99,11 @@ const gameController = (function(){
 
         if (cell.isEmpty())
         {
-            console.log(`${playerName} places an ${playerMarker} in (${col + 1},${row + 1})`);
+            console.log(`${playerName} places an ${playerMarker} in (${col},${row})`);
             cell.fill(playerMarker);
         }
         else{
-            console.log(`cell (${col + 1},${row + 1}) is already occupied!`);
+            console.log(`cell (${col},${row}) is already occupied!`);
             return;
         }
         
@@ -127,7 +118,7 @@ const gameController = (function(){
             console.log('tie');
         }
 
-        // switchPlayerTurn();
+        switchPlayerTurn();
         gameBoard.printBoard();
     }
 
@@ -200,9 +191,9 @@ const displayController = (function(){
 // while (!gameController.getGameOver()){
 //     gameController.playRound(getRndInteger(0, 3), getRndInteger(0, 3));
 // }
-gameController.playRound(0, 0);
-gameController.playRound(1, 0);
-gameController.playRound(2, 0);
+// gameController.playRound(0, 0);
+// gameController.playRound(1, 0);
+// gameController.playRound(2, 0);
 
 // gameController.playRound(0, 0);
 // gameController.playRound(1, 1);
@@ -216,7 +207,7 @@ gameController.playRound(2, 0);
 // gameController.playRound(1, 1);
 // gameController.playRound(2, 2);
 
-// displayController.render();
+displayController.render();
 
 
 function getRndInteger(min, max) {
