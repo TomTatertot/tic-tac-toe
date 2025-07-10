@@ -97,8 +97,6 @@ const gameController = (function(){
         const playerMarker = currentPlayer.getMarker();
         const playerName = currentPlayer.getName(); 
 
-        printPlayerTurn(); 
-
         if (!cell.isEmpty())
             return;
 
@@ -153,7 +151,7 @@ const displayController = (function(){
         const currentPlayer = gameController.getCurrentPlayer();
         if (gameController.isGameOver())
         {
-            playerDisplay.textContent = gameBoard.isFull() ? "Draw" : `${currentPlayer.getName()} (${currentPlayer.getMarker()}) wins!`;
+            playerDisplay.textContent = gameBoard.isFull() ? "Draw!" : `${currentPlayer.getName()} (${currentPlayer.getMarker()}) wins!`;
         }
         else
            playerDisplay.textContent = `${currentPlayer.getName()}'s turn (${currentPlayer.getMarker()})`;
