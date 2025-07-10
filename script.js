@@ -13,33 +13,20 @@ const gameBoard = (function(){
         board.forEach(row => (row.forEach(cell=> cell.fill(""))));
     };
 
-    const toString = () => {
-        const boardWithCellValues = board.map((row) => row.map((cell) => cell.getValue()))
-        console.log(boardWithCellValues);
-    };
-
     const isFull = () => {
         return board.every(row => row.every(cell => !(cell.isEmpty())));
     }
     const getBoard = () => board;
     const getDimensions = () => dimensions;
-    return {toString, clear, isFull, getBoard, getDimensions};
+    return {clear, isFull, getBoard, getDimensions};
 })();
 
-// const pubSub = (function(){
-//     const publish = (eventName, ...details) => {
-//         details.forEach(detail => {
-            
-//         })
-//         const newEvent = newCustomEvent(eventName, details)
-//     }
-// })();
 
 const gameController = (function(){
     let roundNum = 1;
     let gameOver = false;
-    const playerOne = createPlayer("Player 1", "X");
-    const playerTwo = createPlayer("Player 2", "O"); 
+    const playerOne = Player("Player 1", "X");
+    const playerTwo = Player("Player 2", "O"); 
 
     let currentPlayer = playerOne;
 
@@ -48,12 +35,7 @@ const gameController = (function(){
     }
     const getCurrentPlayer = () => currentPlayer;
 
-    const printPlayerTurn = () => {
-        console.log(`${currentPlayer.getName()}'s turn`);
-    }
     const isGameOver = () => gameOver;
-
-    const toggleGameOver = () => gameOver = !gameOver;
     
     const checkForWinner = () => { 
         const marker = currentPlayer.getMarker();
@@ -110,7 +92,6 @@ const gameController = (function(){
     }
 
     const placeMarker = (row, col) => {
-        
         const board = gameBoard.getBoard();
         const cell = board[row][col];
         const playerMarker = currentPlayer.getMarker();
@@ -119,24 +100,17 @@ const gameController = (function(){
         printPlayerTurn(); 
 
         if (!cell.isEmpty())
-        {
-            console.log(`cell (${col},${row}) is already occupied!`);
             return;
-        }
 
-        console.log(`${playerName} places an ${playerMarker} in (${col},${row})`);
         cell.fill(playerMarker);
         
         if (checkForWinner() || gameBoard.isFull())
             gameOver = true;
-
         else
             switchPlayerTurn();
-        
-        gameBoard.toString();
     }
 
-    return {switchPlayerTurn, getCurrentPlayer, printPlayerTurn, placeMarker, isGameOver, toggleGameOver, resetGame};
+    return {getCurrentPlayer, placeMarker, isGameOver, resetGame};
 })();
 
 const displayController = (function(){
@@ -149,8 +123,6 @@ const displayController = (function(){
 
     const board = gameBoard.getBoard();
     const dimensions = gameBoard.getDimensions();
-
-    // playerDisplay.textContent = `${gameController.getCurrentPlayer().getName()}'s turn (${gameController.getCurrentPlayer().getMarker()})`;
 
     const updateBoard = () => {
         clearBoard();
@@ -205,7 +177,6 @@ const displayController = (function(){
         gameController.resetGame();    
         updateBoard();
         updatePlayerDisplay();
-        // playerDisplay.textContent = `${gameController.getCurrentPlayer().getName()}'s turn (${gameController.getCurrentPlayer().getMarker()})`;
      }
 
      updatePlayerDisplay();
@@ -230,10 +201,10 @@ function Cell(){
     return {fill, isEmpty, getValue};
 }
 
-function createPlayer(name, marker) {
+function Player(name, marker) {
     const getName = () => name;
     const getMarker = () => marker;
     return {getName, getMarker};
 }
 
-displayController.renderBoard();
+displayController.renderBoard();  

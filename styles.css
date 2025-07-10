@@ -37,10 +37,15 @@ body {
 
 
     #reset {
-        background-color: #52796f;
+
+        background-color: rgba(82, 121, 111, 0.8);
         font-size: 1.5rem;
         padding: 0.5rem 3rem;
         border-radius: 10px;
+
+        &:hover {
+            background-color: rgba(82, 121, 111, 1);
+        }
     }
 }
 #board{
