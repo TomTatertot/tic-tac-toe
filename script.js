@@ -8,20 +8,38 @@ const gameBoard = (function(){
             board[i].push(Cell());
         }
     }
-    const printBoard = () => {
+    
+    const clear = () => {
+        board.forEach(row => (row.forEach(cell=> cell.fill(""))));
+    };
+
+    const toString = () => {
         const boardWithCellValues = board.map((row) => row.map((cell) => cell.getValue()))
         console.log(boardWithCellValues);
     };
+
+    const isFull = () => {
+        return board.every(row => row.every(cell => !(cell.isEmpty())));
+    }
     const getBoard = () => board;
     const getDimensions = () => dimensions;
-    return {printBoard, getBoard, getDimensions};
+    return {toString, clear, isFull, getBoard, getDimensions};
 })();
+
+// const pubSub = (function(){
+//     const publish = (eventName, ...details) => {
+//         details.forEach(detail => {
+            
+//         })
+//         const newEvent = newCustomEvent(eventName, details)
+//     }
+// })();
 
 const gameController = (function(){
     let roundNum = 1;
     let gameOver = false;
-    const playerOne = createPlayer("Player One", "X");
-    const playerTwo = createPlayer("Player Two", "O"); 
+    const playerOne = createPlayer("Player 1", "X");
+    const playerTwo = createPlayer("Player 2", "O"); 
 
     let currentPlayer = playerOne;
 
@@ -33,8 +51,9 @@ const gameController = (function(){
     const printPlayerTurn = () => {
         console.log(`${currentPlayer.getName()}'s turn`);
     }
+    const isGameOver = () => gameOver;
 
-    const getGameOver = () => gameOver;
+    const toggleGameOver = () => gameOver = !gameOver;
     
     const checkForWinner = () => { 
         const marker = currentPlayer.getMarker();
@@ -84,12 +103,14 @@ const gameController = (function(){
         return false;
     }
 
-    const isBoardFull = () => { 
-        const board = gameBoard.getBoard();
-        return board.every(row => row.every(cell => !(cell.isEmpty())));
+    const resetGame = () => {
+        gameBoard.clear();
+        currentPlayer = playerOne;
+        gameOver = false;
     }
 
-    const playRound = (row, col) => {
+    const placeMarker = (row, col) => {
+        
         const board = gameBoard.getBoard();
         const cell = board[row][col];
         const playerMarker = currentPlayer.getMarker();
@@ -97,33 +118,101 @@ const gameController = (function(){
 
         printPlayerTurn(); 
 
-        if (cell.isEmpty())
+        if (!cell.isEmpty())
         {
-            console.log(`${playerName} places an ${playerMarker} in (${col},${row})`);
-            cell.fill(playerMarker);
-        }
-        else{
             console.log(`cell (${col},${row}) is already occupied!`);
             return;
         }
-        
-        if (checkForWinner())
-        {
-            gameOver = true;
-            console.log(`${playerName} wins!`);
-        }
-        if (isBoardFull())
-        {
-            gameOver = true;
-            console.log('tie');
-        }
 
-        switchPlayerTurn();
-        gameBoard.printBoard();
+        console.log(`${playerName} places an ${playerMarker} in (${col},${row})`);
+        cell.fill(playerMarker);
+        
+        if (checkForWinner() || gameBoard.isFull())
+            gameOver = true;
+
+        else
+            switchPlayerTurn();
+        
+        gameBoard.toString();
     }
 
-    return {switchPlayerTurn, getCurrentPlayer, printPlayerTurn, playRound, getGameOver};
+    return {switchPlayerTurn, getCurrentPlayer, printPlayerTurn, placeMarker, isGameOver, toggleGameOver, resetGame};
 })();
+
+const displayController = (function(){
+    const boardDiv = document.querySelector("#board");
+    const reset = document.querySelector("#reset");
+    const playerDisplay = document.querySelector("#playerDisplay");
+
+    reset.addEventListener("click", clickHandlerReset);
+    boardDiv.addEventListener("click", clickHandlerBoard);
+
+    const board = gameBoard.getBoard();
+    const dimensions = gameBoard.getDimensions();
+
+    // playerDisplay.textContent = `${gameController.getCurrentPlayer().getName()}'s turn (${gameController.getCurrentPlayer().getMarker()})`;
+
+    const updateBoard = () => {
+        clearBoard();
+        renderBoard();
+    }
+
+    const renderBoard = () => {
+        for (let i = 0; i < dimensions; i++){
+            for (let j = 0; j < dimensions; j++){
+                const button = document.createElement('button'); 
+                const playerMarker = board[i][j].getValue();
+
+                button.textContent = playerMarker;
+
+                button.dataset.row = i;
+                button.dataset.col = j;
+                button.dataset.marker = playerMarker;
+
+                boardDiv.append(button);
+            }
+        }
+    }
+    const clearBoard = () => {
+        boardDiv.innerHTML = '';
+    }
+
+    const updatePlayerDisplay = () => {
+        const currentPlayer = gameController.getCurrentPlayer();
+        if (gameController.isGameOver())
+        {
+            playerDisplay.textContent = gameBoard.isFull() ? "Draw" : `${currentPlayer.getName()} (${currentPlayer.getMarker()}) wins!`;
+        }
+        else
+           playerDisplay.textContent = `${currentPlayer.getName()}'s turn (${currentPlayer.getMarker()})`;
+
+    }
+
+    function clickHandlerBoard(e){
+        if(gameController.isGameOver())
+            return;
+
+        const button = e.target.closest("button");
+        if (!button)
+            return;
+
+        gameController.placeMarker(button.dataset.row, button.dataset.col);
+        updateBoard();
+        updatePlayerDisplay();
+     }
+
+     function clickHandlerReset(e){
+        gameController.resetGame();    
+        updateBoard();
+        updatePlayerDisplay();
+        // playerDisplay.textContent = `${gameController.getCurrentPlayer().getName()}'s turn (${gameController.getCurrentPlayer().getMarker()})`;
+     }
+
+     updatePlayerDisplay();
+
+    return {renderBoard};   
+})();
+
 
 function Cell(){
     let value = "";
@@ -133,9 +222,8 @@ function Cell(){
     }
 
     const isEmpty = () => {
-        if (value === "")
-            return true;
-        };
+        return value === "";
+    }
 
     const getValue = () => value;
 
@@ -148,74 +236,4 @@ function createPlayer(name, marker) {
     return {getName, getMarker};
 }
 
-const displayController = (function(){
-    //render content of array to the webpage
-    const board = gameBoard.getBoard();
-    const dimensions = gameBoard.getDimensions();
-    const boardHTML = document.querySelector("#board");
-    const reset = document.querySelector("#reset");
-    reset.addEventListener("click", (event) => {
-        clearScreen();
-        render();
-    })
-    const render = () => {
-        for (let i = 0; i < dimensions; i++){
-            for (let j = 0; j < dimensions; j++){
-                const button = document.createElement('button'); 
-
-                button.textContent = board[i][j].getValue();
-                button.dataset.row = i;
-                button.dataset.col = j;
-
-                button.addEventListener("click", addMarker);
-
-                boardHTML.append(button);
-            }
-        }
-    }
-    const clearScreen = () => {
-        boardHTML.innerHTML = '';
-    }
-
-    const addMarker = (e) => {
-        const divCell = e.target;
-        console.log(`${divCell.dataset.row},${divCell.dataset.col}`);
-        gameController.playRound(divCell.dataset.row, divCell.dataset.col);
-        clearScreen();
-        render();
-    }
-    return {render, clearScreen};   
-})();
-
-
-// while (!gameController.getGameOver()){
-//     gameController.playRound(getRndInteger(0, 3), getRndInteger(0, 3));
-// }
-// gameController.playRound(0, 0);
-// gameController.playRound(1, 0);
-// gameController.playRound(2, 0);
-
-// gameController.playRound(0, 0);
-// gameController.playRound(1, 1);
-// gameController.playRound(2, 2);
-
-// gameController.playRound(0, 0);
-// gameController.playRound(1, 1);
-// gameController.playRound(2, 2);
-
-// gameController.playRound(0, 0);
-// gameController.playRound(1, 1);
-// gameController.playRound(2, 2);
-
-displayController.render();
-
-
-function getRndInteger(min, max) {
-  return Math.floor(Math.random() * (max - min) ) + min;
-}
-// gameBoard.printBoard();
-// playerOne = createPlayer("William", "X");
-// playerOne.name = "bigggg willy";
-// console.log(playerOne);
-// gameBoard.fillCell(gameController.getActivePlayer().marker);
-
+displayController.renderBoard();
